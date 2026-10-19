@@ -4,6 +4,7 @@ import os
 from core.crypto import AESCrypt
 from core.steganography import Steganography
 from core.compression import LZW
+from core.email_utils import EmailSender
 
 class App:
     def __init__(self, root):
@@ -53,10 +54,9 @@ class App:
         DecodeWindow(self.root)
 
     def show_about(self):
-        about_text = "Image Steganography Hybrid Approach\n\nFeatures:\n- AES Encryption\n- LZW Compression\n- LSB Steganography\n\nConverted to Python by Gemini CLI."
+        about_text = "Image Steganography Hybrid Approach\n\nFeatures:\nAES Encryption\nLZW Compression\nLSB Steganography\n\nConverted to Python."
         messagebox.showinfo("About", about_text)
 
-from core.email_utils import EmailSender
 
 class EncodeWindow(tk.Toplevel):
     def __init__(self, parent):
@@ -81,7 +81,7 @@ class EncodeWindow(tk.Toplevel):
         # Secret Key
         tk.Label(self, text="Step 2: Enter Secret Key (AES)", fg="white", bg="#34495e").pack(pady=5)
         self.ent_key = tk.Entry(self, show="*")
-        self.ent_key.insert(0, "1Hbfh667adfDEJ78") # Default Java key
+        self.ent_key.insert(0, "1Hbfh667adfDEJ78") # Default key
         self.ent_key.pack()
 
         # Message
@@ -127,10 +127,15 @@ class EncodeWindow(tk.Toplevel):
             return
 
         try:
-            # 1. Encrypt
-            encrypted = AESCrypt.encrypt(msg)
+            # Lấy khóa động từ ô nhập liệu
+            key = self.ent_key.get()
+            
+            # 1. Encrypt (Truyền key vào)
+            encrypted = AESCrypt.encrypt(msg, key)
+            
             # 2. Compress
             compressed = LZW.compress_to_string(encrypted)
+            
             # 3. Steganography
             out_path = filedialog.asksaveasfilename(defaultextension=".png", filetypes=[("PNG files", "*.png")])
             if not out_path:
@@ -143,7 +148,7 @@ class EncodeWindow(tk.Toplevel):
             if sender:
                 pwd = self.ent_pass.get().strip()
                 recv = self.ent_receiver.get().strip()
-                if EmailSender.send_key_mail(sender, pwd, recv, self.ent_key.get()):
+                if EmailSender.send_key_mail(sender, pwd, recv, key):
                     messagebox.showinfo("Success", "Data encoded and key emailed!")
                 else:
                     messagebox.showwarning("Warning", "Data encoded, but email failed.")
@@ -154,11 +159,12 @@ class EncodeWindow(tk.Toplevel):
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {e}")
 
+
 class DecodeWindow(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
         self.title("Decode Data")
-        self.geometry("500x500")
+        self.geometry("500x550")
         self.configure(bg="#34495e")
         
         self.image_path = None
@@ -168,11 +174,17 @@ class DecodeWindow(tk.Toplevel):
         tk.Label(self, text="Decode Message", font=("Arial", 18, "bold"), fg="white", bg="#34495e", pady=10).pack()
         
         # Image Selection
-        tk.Label(self, text="Select Stego Image", fg="white", bg="#34495e").pack(pady=5)
+        tk.Label(self, text="Step 1: Select Stego Image", fg="white", bg="#34495e").pack(pady=5)
         self.btn_select_img = tk.Button(self, text="Browse Image", command=self.select_image)
         self.btn_select_img.pack()
         self.lbl_img_path = tk.Label(self, text="No image selected", fg="#bdc3c7", bg="#34495e", wraplength=400)
         self.lbl_img_path.pack()
+
+        # Secret Key (THÊM MỚI Ở ĐÂY)
+        tk.Label(self, text="Step 2: Enter Secret Key (AES)", fg="white", bg="#34495e").pack(pady=5)
+        self.ent_key = tk.Entry(self, show="*")
+        self.ent_key.insert(0, "1Hbfh667adfDEJ78") # Khóa mặc định khớp với bên encode
+        self.ent_key.pack()
 
         # Decode Button
         self.btn_decode = tk.Button(self, text="EXTRACT & DECODE", bg="#27ae60", fg="white", 
@@ -204,8 +216,10 @@ class DecodeWindow(tk.Toplevel):
             
             # 2. Decompress
             encrypted = LZW.decompress_from_string(compressed)
-            # 3. Decrypt
-            decrypted = AESCrypt.decrypt(encrypted)
+            
+            # 3. Decrypt (Lấy khóa từ ô nhập liệu và truyền vào)
+            key = self.ent_key.get()
+            decrypted = AESCrypt.decrypt(encrypted, key)
             
             if decrypted:
                 self.txt_result.config(state=tk.NORMAL)
@@ -216,6 +230,7 @@ class DecodeWindow(tk.Toplevel):
                 messagebox.showerror("Error", "Could not decrypt data. Invalid key or data.")
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {e}")
+
 
 if __name__ == "__main__":
     root = tk.Tk()
