@@ -305,9 +305,3 @@ Do ứng dụng chỉ thay đổi duy nhất 1 bit cuối (LSB) của mỗi thà
 - [ ] **Tính toán trực tiếp PSNR & MSE:** Tự động tính và hiển thị thông số PSNR/MSE trên giao diện ngay sau khi tạo ảnh Stego.
 - [ ] **Giao thức mạng trực tiếp:** Kích hoạt tính năng truyền tải tệp và chat mã hóa trực tiếp giữa hai máy khách thông qua giao thức TCP Socket.
 
----
-
-## Nguồn Gốc Dự Án (Attribution)
-
-- **Dự án gốc:** Được phát triển dưới dạng đề tài tốt nghiệp Kỹ sư Công nghệ Máy tính (2017–2018) bằng Java Swing bởi **Amit Singh** (Đại học Mumbai).
-- **Phiên bản Python:** Được chuyển thể, tái cấu trúc và tối ưu hóa sang Python hiện đại với **Tkinter**, **PyCryptodome**, **Pillow** và **NumPy**.
